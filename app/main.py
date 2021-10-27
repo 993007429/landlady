@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 
 from .config import DEBUG, VERSION
-from app.api.routers import box
+from app.api.routers import api
 
 app = FastAPI(title='landlady', debug=DEBUG, version=VERSION)
 
-app.include_router(box.router)
+app.include_router(api.router, prefix='/api')
 
 
 if DEBUG:
