@@ -82,11 +82,10 @@ class Session(object):
         return box
 
     def deploy_in_box(self, box_id: int):
-        self.operate_box(box_id, BoxOperation.apply)
-
+        box = self.operate_box(box_id, BoxOperation.apply)
         current_dir = os.getcwd()
         filename = f'{current_dir}/bundle.tar.gz'
-        make_targz(filename, current_dir)
+        make_targz(filename, current_dir, box['project']['name'])
 
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/upload'
         files = {'file': open(filename, 'rb')}
@@ -97,19 +96,19 @@ class Session(object):
 
     def fetch_log(self, box_id: int):
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/app_log?process_num=0'
-        headers = self.get_headers({
-            'Accept': 'text/event-stream',
-        })
-        response = requests.get(url, params={'project_id': PROJECT_ID}, stream=True, headers=headers)
-        client = sseclient.SSEClient(response)
-        for event in client.events():
-            if event.event == 'message':
-                print(event.data)
+        messages = sseclient.SSEClient(url, headers=self.get_headers())
+        for msg in messages:
+            print(msg)
 
     def display_boxs(self, boxes: List[dict]):
-        pt = PrettyTable(['box_id', '使用人', '开始时间', 'status'])
+        pt = PrettyTable(['box_id', 'endpoint', '使用人', '开始时间', 'status'])
         for box in boxes:
-            pt.add_row([box['id'], (box.get('user') or {}).get('name', '空闲'), box['startTime'] or '', box['status']])
+            pt.add_row([
+                box['id'],
+                box['endpoint'],
+                (box.get('user') or {}).get('name', '空闲'),
+                box['startTime'] or '',
+                box['status']])
         print(pt)
 
 
@@ -122,7 +121,7 @@ def main(command, arg1=None):
         cli()
     except ServerErrorException as e:
         print(e.msg or '服务端错误')
-    except ValueError:
+    except ValueError as e:
         print('参数不合法')
 
 

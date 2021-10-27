@@ -29,6 +29,7 @@ install_requires = [
 
 setup_options = dict(
     name='lld',
+    python_requires='>3.8.0',
     version=find_version("client", "__init__.py"),
     description='Command Line Environment for UAT',
     long_description=read('README.rst'),

@@ -13,7 +13,7 @@ def gen_nginx_conf(box: BoxEntity):
     s = nginx.Server()
     s.add(
         nginx.Key('listen', '80'),
-        nginx.Key('server_name', f'{box.server_name}'),
+        nginx.Key('server_name', f'{box.endpoint}'),
         nginx.Location(
             '/',
             nginx.Key('add_header', 'Access-Control-Allow-Origin *'),

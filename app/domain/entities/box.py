@@ -52,8 +52,13 @@ class BoxEntity(RWModel):
         return f'{self.project.name}-{self.id}'
 
     @property
-    def server_name(self):
+    def endpoint(self):
         return f'{self.project.uat_name}-{self.id}.{self.project.domain}'
 
     def log_file(self, process_num: int) -> str:
         return f'{self.logs_dir}/web-{self.port_prefix}{process_num}.log'
+
+    def dict(self, *args, **kwargs):
+        d = super().dict(*args, **kwargs)
+        d['endpoint'] = self.endpoint
+        return d
