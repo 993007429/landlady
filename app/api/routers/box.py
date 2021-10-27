@@ -5,7 +5,6 @@ from typing import Optional
 
 from fastapi import APIRouter, Query, Depends, HTTPException, UploadFile, File
 from sse_starlette.sse import EventSourceResponse
-from sh import tail, RunningCommand  # type: ignore
 
 from app.api.dependencies.authentication import get_current_user_authorizer
 from app.api.schemas.box import BoxResponse

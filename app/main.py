@@ -9,8 +9,8 @@ app.include_router(box.router)
 
 
 if DEBUG:
-    import pydevd_pycharm
     try:
+        import pydevd_pycharm
         pydevd_pycharm.settrace('127.0.0.1', port=8001, stdoutToServer=True, stderrToServer=True)
-    except ConnectionRefusedError:
+    except (ConnectionRefusedError, ModuleNotFoundError):
         pass
