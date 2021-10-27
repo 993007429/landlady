@@ -1,0 +1,4 @@
+[Credentials]
+project_id=1
+token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2MzcyODk5MDUsInVpZCI6MSwibmFtZSI6InJva2FrYSJ9.shKoAhkVyHHRkdhYvxsy54ClRPisQmXgJTOL6h3z5AQ
+endpoint=http://localhost:8000
