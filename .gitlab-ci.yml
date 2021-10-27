@@ -1,0 +1,14 @@
+image: registry.cn-shanghai.aliyuncs.com/space1/complile-python-3.8.12:v1.1
+
+stages:
+  - test
+
+job lint:
+  tags:
+  - sp
+  stage: test
+  before_script:
+    - source /data/www/venv/bin/activate
+    - pip3 install mypy
+  script:
+  - mypy app
