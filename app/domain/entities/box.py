@@ -51,5 +51,9 @@ class BoxEntity(RWModel):
     def app_name(self) -> str:
         return f'{self.project.name}-{self.id}'
 
+    @property
+    def server_name(self):
+        return f'{self.uat_name}-{self.id}.{self.domain}'
+
     def log_file(self, process_num: int) -> str:
         return f'{self.logs_dir}/web-{self.port_prefix}{process_num}.log'

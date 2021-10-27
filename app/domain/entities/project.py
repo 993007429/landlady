@@ -11,7 +11,3 @@ class ProjectEntity(RWModel):
     port_prefix: str
     url_paths: List[str]
     run_command: str = ''
-
-    @property
-    def server_name(self):
-        return f'{self.uat_name}.{self.domain}'
