@@ -1,3 +1,0 @@
-[console_scripts]
-lld = client.cli:main
-
