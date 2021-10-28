@@ -2,7 +2,6 @@
 import codecs
 import os.path
 import re
-import sys
 
 from setuptools import setup, find_packages
 
@@ -25,22 +24,27 @@ def find_version(*file_paths):
 
 install_requires = [
     'click==8.0.3',
+    'requests==2.26.0',
+    'sseclient==0.0.27',
+    'prettytable==2.2.1',
 ]
 
 setup_options = dict(
-    name='lld',
+    name='box',
     python_requires='>3.8.0',
     version=find_version("client", "__init__.py"),
     description='Command Line Environment for UAT',
     long_description=read('README.rst'),
     author='ZHAO YU',
     scripts=['client/cli.py'],
-    packages=find_packages(),
-    package_data={'client': []},
+    packages=find_packages(include=['client']),
     install_requires=install_requires,
+    dependency_links=[
+        'http://mirrors.idiaoyan.cn/repository/pypi/',
+    ],
     entry_points={
         'console_scripts': [
-            'lld = client.cli:main',
+            'box = client.cli:main',
         ],
     },
 )

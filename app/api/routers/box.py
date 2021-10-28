@@ -111,7 +111,6 @@ async def get_logs(
         box_id: int,
         project_id: int,
         process_num: int = 0,
-        current_user: Optional[User] = Depends(get_current_user_authorizer()),
         box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))):
 
     box = box_service.get_box(box_id)
@@ -123,17 +122,16 @@ async def get_logs(
 
     try:
         box_service.check_project(box.project.id, project_id)
-        box_service.check_box_owner(box.user.id, current_user.id)
     except errors.WrongProjectException:
         raise HTTPException(status_code=403, detail=strings.WRONG_PROJECT)
-    except errors.WrongBoxException:
-        raise HTTPException(status_code=403, detail=strings.NO_AUTHORITY_TO_VIEW)
 
     file_path = box.log_file(process_num=process_num)
 
     async def log_generator():
         with open(file_path, 'rb') as file:
-            file.seek(-1000, os.SEEK_END)
+            file.seek(0, os.SEEK_END)
+            file_size = file.tell()
+            file.seek(- min(1000, file_size), os.SEEK_END)
             while True:
                 line = file.readline()
                 try:

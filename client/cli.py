@@ -1,3 +1,4 @@
+import enum
 import os
 from typing import Dict, Optional, List
 
@@ -6,10 +7,13 @@ import requests
 import sseclient
 from prettytable import PrettyTable
 
-from app.config import JWT_TOKEN_PREFIX
-from app.domain.services.box import BoxOperation
-from client.config import DEPLOY_ENDPOINT, JWT_TOKEN, PROJECT_ID
+from client.config import DEPLOY_ENDPOINT, JWT_TOKEN, PROJECT_ID, JWT_TOKEN_PREFIX
 from client.packing import make_targz
+
+
+class BoxOperation(enum.Enum):
+    apply = '1'
+    free = '2'
 
 
 class CLI(object):
@@ -96,9 +100,10 @@ class Session(object):
 
     def fetch_log(self, box_id: int):
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/app_log?process_num=0'
-        messages = sseclient.SSEClient(url, headers=self.get_headers())
-        for msg in messages:
-            print(msg)
+        events = sseclient.SSEClient(url, headers=self.get_headers())
+        for event in events:
+            if event and event.event == 'message':
+                print(event.data)
 
     def display_boxs(self, boxes: List[dict]):
         pt = PrettyTable(['box_id', 'endpoint', '使用人', '开始时间', 'status'])

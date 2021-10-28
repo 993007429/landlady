@@ -7,7 +7,7 @@ def gen_nginx_conf(box: BoxEntity):
     c = nginx.Conf()
     upstream_name = f'{box.app_name}-app'
     for i in range(box.numprocs):
-        port = box.port_prefix + i
+        port = box.port_prefix * 10 + i
         u = nginx.Upstream(upstream_name, nginx.Key('server', f'127.0.0.1:{port}'))
         c.add(u)
     s = nginx.Server()

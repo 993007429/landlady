@@ -1,9 +1,11 @@
 import os
 import configparser
 
+JWT_TOKEN_PREFIX = "Token"  # noqa: S105
+
 conf = configparser.RawConfigParser()
 
-conf.read(f'{os.getcwd()}/.landlady')
+conf.read(f'{os.getcwd()}/.landlady-dev')
 
 if not conf.sections():
     print('ERROR: config file: .landlady is not found!')
