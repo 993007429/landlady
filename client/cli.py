@@ -93,11 +93,13 @@ class Session(object):
         current_dir = os.getcwd()
         filename = f"{current_dir}/{box['project']['name']}.tar.gz"
 
-        includes = [item.strip() for item in INCLUDE_FILES.split(',')]
+        includes = [item.strip() for item in INCLUDE_FILES.split(',')] if INCLUDE_FILES else []
 
         fe_dist = FE_DIST.strip() if FE_DIST else ''
-        fe_deploy_dist = box['feDist']
-        fe_dist_mapping = {fe_dist: fe_deploy_dist}
+        fe_dist_mapping = {}
+        if fe_dist:
+            fe_deploy_dist = box['feDist']
+            fe_dist_mapping = {fe_dist: fe_deploy_dist}
 
         make_targz(filename, includes=includes, fe_dist_mapping=fe_dist_mapping)
 

@@ -12,8 +12,9 @@ def make_targz(output_filename, includes: List[str], fe_dist_mapping: Dict[str, 
     :param fe_dist_mapping: 前端本地目录和部署目录的映射
     :return: bool
     """
-    excludes = [item.strip() for item in EXCLUDE_DIRS.split(',')]
-    exclude_suffixes = [item.strip() for item in EXCLUDE_SUFFIX.split(',')]
+
+    excludes = [item.strip() for item in EXCLUDE_DIRS.split(',')] if EXCLUDE_DIRS else []
+    exclude_suffixes = [item.strip() for item in EXCLUDE_SUFFIX.split(',')] if EXCLUDE_SUFFIX else []
 
     def exclude_function(tarinfo):
         file_path = tarinfo.name
