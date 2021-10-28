@@ -1,14 +1,16 @@
 import asyncio
 import os
 from asyncio import CancelledError
+from subprocess import CalledProcessError
 from typing import Optional
 
 from fastapi import APIRouter, Query, Depends, HTTPException, UploadFile, File
 from sse_starlette.sse import EventSourceResponse
+from starlette.responses import FileResponse, PlainTextResponse
 
 from app.api.dependencies.authentication import get_current_user_authorizer
-from app.api.schemas.box import BoxResponse
-from app.api.schemas.common import ModelListResponse, SuccessResponse
+from app.api.schemas.box import BoxResponse, BoxStatusResponse
+from app.api.schemas.common import ModelListResponse
 from app.db.models.user import User
 from app.domain.entities.box import BoxEntity
 from app.domain.services import errors
@@ -74,7 +76,7 @@ async def update_box(
 
 @router.post(
     "/projects/{project_id}/boxes/{box_id}/upload",
-    response_model=SuccessResponse,
+    response_model=BoxStatusResponse,
     name="box:upload-in-box",
 )
 async def upload_in_box(
@@ -82,11 +84,12 @@ async def upload_in_box(
         project_id: int,
         file: UploadFile = File(...),
         current_user: Optional[User] = Depends(get_current_user_authorizer()),
-        box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))) -> SuccessResponse:
+        box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))) -> BoxStatusResponse:
     err_msg = None
     try:
-        result = box_service.deploy_in_box(box_id, project_id, current_user.id, file.file)
-        return SuccessResponse(msg=result)
+        output = box_service.deploy_in_box(box_id, project_id, current_user.id, file.file)
+        box = box_service.get_box(box_id)
+        return BoxStatusResponse(status=output, box=box)
     except errors.EntityDoesNotExist:
         err_msg = strings.BOX_NOT_EXIST
     except errors.WrongProjectException:
@@ -141,3 +144,42 @@ async def get_logs(
 
     event_generator = log_generator()
     return EventSourceResponse(event_generator)
+
+
+@router.get(
+    "/projects/{project_id}/boxes/{box_id}/files/list",
+    name="box:list-files-in-box",
+    response_class=PlainTextResponse,
+)
+async def list_files(
+        box_id: int,
+        path: str = '',
+        box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))):
+    try:
+        return box_service.list_files(box_id, path)
+    except errors.EntityDoesNotExist:
+        raise HTTPException(
+            status_code=404,
+            detail=f'box(id={box_id})不存在',
+        )
+    except CalledProcessError:
+        return ''
+
+
+@router.get(
+    "/projects/{project_id}/boxes/{box_id}/files/content",
+    name="box:show-file-content-in-box",
+    response_class=FileResponse
+)
+async def show_file(
+        box_id: int,
+        filename: str,
+        box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))):
+    box = box_service.get_box(box_id)
+    if not box:
+        raise HTTPException(
+            status_code=404,
+            detail=f'box(id={box_id})不存在',
+        )
+
+    return f'{box.box_dir}/{filename}'

@@ -5,7 +5,7 @@ JWT_TOKEN_PREFIX = "Token"  # noqa: S105
 
 conf = configparser.RawConfigParser()
 
-conf.read(f'{os.getcwd()}/.landlady-dev')
+conf.read(f'{os.getcwd()}/.landlady')
 
 if not conf.sections():
     print('ERROR: config file: .landlady is not found!')
@@ -15,4 +15,8 @@ if not conf.sections():
 PROJECT_ID = conf['Credentials']['project_id']
 JWT_TOKEN = conf['Credentials']['token']
 DEPLOY_ENDPOINT = conf['Credentials']['endpoint']
-EXCLUDE_FILES = conf['Deploy']['exclude']
+
+INCLUDE_FILES = conf['Deploy']['include']
+EXCLUDE_DIRS = conf['Deploy']['exclude_dirs']
+EXCLUDE_SUFFIX = conf['Deploy']['exclude_suffix']
+FE_DIST = conf['Deploy']['fe_dist']

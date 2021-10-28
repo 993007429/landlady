@@ -17,6 +17,7 @@ class BoxStatus(enum.Enum):
 class BoxEntity(RWModel):
     id: int
     project: Optional[ProjectEntity] = None
+    fe_dist: str = 'frontend_dist'
     user: Optional[UserEntity] = None
     status: BoxStatus = BoxStatus.off
     port_prefix: int = None
@@ -33,7 +34,7 @@ class BoxEntity(RWModel):
 
     @property
     def fe_dir(self) -> str:
-        return f'{self.code_dir}/frontend_dist'
+        return f'{self.code_dir}/{self.fe_dist}'
 
     @property
     def logs_dir(self) -> str:

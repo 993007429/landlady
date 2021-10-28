@@ -1,24 +1,42 @@
 import tarfile
+from typing import List, Dict
 
-from client.config import EXCLUDE_FILES
+from client.config import EXCLUDE_DIRS, EXCLUDE_SUFFIX
 
 
-def make_targz(output_filename, source_dir, arcname):
+def make_targz(output_filename, includes: List[str], fe_dist_mapping: Dict[str, str] = None) -> bool:
     """
     一次性打包目录为tar.gz
     :param output_filename: 压缩文件名
-    :param source_dir: 需要打包的目录
+    :param includes: 需要被打包进去的白名单目录
+    :param fe_dist_mapping: 前端本地目录和部署目录的映射
     :return: bool
     """
-    excludes = [item.strip() for item in EXCLUDE_FILES.split(',')]
+    excludes = [item.strip() for item in EXCLUDE_DIRS.split(',')]
+    exclude_suffixes = [item.strip() for item in EXCLUDE_SUFFIX.split(',')]
 
     def exclude_function(tarinfo):
-        names = tarinfo.name.split('/')
-        filename = names[1] if len(names) > 1 else ''
-        if filename and (filename.startswith('.') or filename in excludes):
+        file_path = tarinfo.name
+        print(file_path)
+        if _check_ignore(file_path, excludes, exclude_suffixes):
             return None
         else:
             return tarinfo
     with tarfile.open(output_filename, "w:gz") as tar:
-        tar.add(source_dir, arcname=arcname, filter=exclude_function)
+        for file_path in includes:
+            tar.add(file_path, filter=exclude_function)
+        for dist, mapping_dist in (fe_dist_mapping or {}).items():
+            tar.add(dist, arcname=mapping_dist, filter=exclude_function)
     return True
+
+
+def _check_ignore(file_path: str, excludes: List[str], exclude_suffixes: List[str]) -> bool:
+    if not file_path:
+        return True
+    for path in excludes:
+        if file_path == path:
+            return True
+    for suffix in exclude_suffixes:
+        if file_path.endswith(suffix):
+            return True
+    return False

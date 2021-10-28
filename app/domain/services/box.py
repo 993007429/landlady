@@ -50,8 +50,10 @@ class BoxService(BaseService):
             if deleted:
                 try:
                     shutil.rmtree(pathlib.Path(box_entity.box_dir))
+                    return True
                 except FileNotFoundError:
                     pass
+        return False
 
     def init_box(self, box: BoxEntity):
         Path(box.code_dir).mkdir(parents=True, exist_ok=True)
@@ -117,7 +119,7 @@ class BoxService(BaseService):
         shutil.rmtree(box.code_dir, ignore_errors=True)
 
         with tarfile.open(fileobj=file, mode='r:gz') as tar:
-            tar.extractall(box.box_dir)
+            tar.extractall(box.code_dir)
 
         subprocess.call(['sudo', 'supervisorctl', 'restart', f'{box.app_name}:'])
 
@@ -126,7 +128,21 @@ class BoxService(BaseService):
         if 'RUNNING' in output:
             box.status = BoxStatus.on
             box.start_time = datetime.datetime.now()
-        elif 'FATAL' in output:
+        elif 'FATAL' in output or 'BACKOFF' in output:
             box.status = BoxStatus.error
         self._repo_generator(Box).save(box)
         return output
+
+    def list_files(self, box_id: int, path: str = ''):
+        box = self.get_box(box_id)
+        if not box:
+            raise errors.EntityDoesNotExist(box_id)
+
+        return subprocess.check_output(['ls', '-al', f'{box.box_dir}/{path}']).decode('utf-8')
+
+    def list_files(self, box_id: int, path: str = ''):
+        box = self.get_box(box_id)
+        if not box:
+            raise errors.EntityDoesNotExist(box_id)
+
+        return subprocess.check_output(['ls', '-al', f'{box.box_dir}/{path}']).decode('utf-8')
