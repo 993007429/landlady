@@ -1,5 +1,5 @@
-import os
 import configparser
+import os
 
 JWT_TOKEN_PREFIX = "Token"  # noqa: S105
 

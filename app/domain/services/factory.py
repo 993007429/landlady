@@ -8,7 +8,6 @@ from app.infra.repository import RepoGenerator
 
 
 class ServiceFactory(object):
-
     _shared_instances = {}
 
     @classmethod

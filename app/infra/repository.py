@@ -35,6 +35,7 @@ class Repository(Generic[M]):
     def get(self, uid: int) -> Optional[M]:
         def get_func():
             return self.session.get(entity=self.model_class, ident=uid)
+
         return get_func()
 
     def gets(self, uids: List[int]) -> List[Optional[M]]:

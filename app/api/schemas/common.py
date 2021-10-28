@@ -12,6 +12,4 @@ class ModelListResponse(RWModel, Generic[E]):
 
 
 class SuccessResponse(RWModel):
-
     msg: str = '操作成功'
-    

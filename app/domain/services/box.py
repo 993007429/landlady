@@ -13,12 +13,12 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.db.models.box import Box, BoxStatus
 from app.domain.entities.box import BoxEntity
+from app.domain.services import errors
 from app.domain.services.base import BaseService
 from app.domain.services.errors import NewEntityFailException
 from app.domain.utils.nginx import gen_nginx_conf
 from app.domain.utils.supervisor import gen_supervisor_conf
 from app.infra.repository import RepoQuery, PageParams
-from app.domain.services import errors
 
 
 class BoxOperation(enum.Enum):

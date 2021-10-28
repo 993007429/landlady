@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-from .config import DEBUG, VERSION
 from app.api.routers import api
+from .config import DEBUG, VERSION
 
 app = FastAPI(title='landlady', debug=DEBUG, version=VERSION)
 
 app.include_router(api.router, prefix='/api')
+
 
 def custom_openapi():
     if app.openapi_schema:
@@ -23,11 +24,13 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+
 app.openapi = custom_openapi
 
 if DEBUG:
     try:
         import pydevd_pycharm
+
         pydevd_pycharm.settrace('127.0.0.1', port=8001, stdoutToServer=True, stderrToServer=True)
     except (ConnectionRefusedError, ModuleNotFoundError):
         pass

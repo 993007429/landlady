@@ -1,5 +1,4 @@
 from functools import cached_property
-from typing import TypeVar
 
 from app.domain.adapters import EntityAdapter
 from app.infra.repository import RepoGenerator

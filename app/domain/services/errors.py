@@ -1,5 +1,6 @@
 class EntityDoesNotExist(Exception):
     """Raised when entity was not found in database."""
+
     def __init__(self, entity_id):
         self.entity_id = entity_id
 
@@ -8,6 +9,7 @@ class BoxUnavailableException(Exception):
     """
     box不可用
     """
+
     def __init__(self, entity_id):
         self.entity_id = entity_id
 

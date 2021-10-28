@@ -9,13 +9,12 @@ from sse_starlette.sse import EventSourceResponse
 from app.api.dependencies.authentication import get_current_user_authorizer
 from app.api.schemas.box import BoxResponse
 from app.api.schemas.common import ModelListResponse, SuccessResponse
-from app.domain.entities.box import BoxEntity
 from app.db.models.user import User
-from app.domain.services.factory import ServiceFactory
-from app.resources import strings
-
+from app.domain.entities.box import BoxEntity
 from app.domain.services import errors
 from app.domain.services.box import BoxService, BoxOperation
+from app.domain.services.factory import ServiceFactory
+from app.resources import strings
 
 router = APIRouter()
 
@@ -50,7 +49,6 @@ async def update_box(
         operation: BoxOperation,
         current_user: Optional[User] = Depends(get_current_user_authorizer()),
         box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))) -> BoxResponse:
-
     box, error_msg = None, None
     try:
         box = box_service.operate_box(
@@ -112,7 +110,6 @@ async def get_logs(
         project_id: int,
         process_num: int = 0,
         box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))):
-
     box = box_service.get_box(box_id)
     if not box:
         raise HTTPException(
@@ -141,5 +138,6 @@ async def get_logs(
                         await asyncio.sleep(1)
                 except CancelledError:
                     break
+
     event_generator = log_generator()
     return EventSourceResponse(event_generator)

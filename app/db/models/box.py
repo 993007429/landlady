@@ -1,5 +1,5 @@
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import Column, Enum
 from sqlmodel import Field, SQLModel
