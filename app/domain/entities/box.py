@@ -17,7 +17,6 @@ class BoxStatus(enum.Enum):
 class BoxEntity(RWModel):
     id: int
     project: Optional[ProjectEntity] = None
-    fe_dist: str = 'frontend_dist'
     user: Optional[UserEntity] = None
     status: BoxStatus = BoxStatus.off
     port_prefix: int = None
@@ -33,8 +32,12 @@ class BoxEntity(RWModel):
         return f'{self.box_dir}/{self.project.name}'
 
     @property
-    def fe_dir(self) -> str:
-        return f'{self.code_dir}/{self.fe_dist}'
+    def fe_dist_name(self) -> str:
+        return f'{self.project.name}-fe'
+
+    @property
+    def fe_code_dir(self) -> str:
+        return f'{self.box_dir}/{self.fe_dist_name}'
 
     @property
     def logs_dir(self) -> str:
@@ -62,4 +65,5 @@ class BoxEntity(RWModel):
     def dict(self, *args, **kwargs):
         d = super().dict(*args, **kwargs)
         d['endpoint'] = self.endpoint
+        d['feDistName'] = self.fe_dist_name
         return d

@@ -82,12 +82,19 @@ async def update_box(
 async def upload_in_box(
         box_id: int,
         project_id: int,
-        file: UploadFile = File(...),
+        bundle: Optional[UploadFile] = File(None),
+        fe_bundle: Optional[UploadFile] = File(None),
         current_user: Optional[User] = Depends(get_current_user_authorizer()),
         box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))) -> BoxStatusResponse:
     err_msg = None
     try:
-        output = box_service.deploy_in_box(box_id, project_id, current_user.id, file.file)
+        output = ''
+        if bundle:
+            output += box_service.deploy_in_box(
+                box_id, project_id, current_user.id, bundle)
+        if fe_bundle:
+            output += box_service.deploy_in_box(
+                box_id, project_id, current_user.id, fe_bundle)
         box = box_service.get_box(box_id)
         return BoxStatusResponse(status=output, box=box)
     except errors.EntityDoesNotExist:

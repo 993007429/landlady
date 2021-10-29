@@ -91,26 +91,39 @@ class Session(object):
     def deploy_in_box(self, box_id: int):
         box = self.operate_box(box_id, BoxOperation.apply)
         current_dir = os.getcwd()
-        filename = f"{current_dir}/{box['project']['name']}.tar.gz"
+        bundle_name = box['project']['name']
+        fe_bundle_name = box['feDistName']
 
-        includes = [item.strip() for item in INCLUDE_FILES.split(',')] if INCLUDE_FILES else []
+        bundles = {}
+
+        if INCLUDE_FILES.strip():
+            includes = [item.strip() for item in INCLUDE_FILES.split(',')]
+            filename = f"{current_dir}/{bundle_name}.tar.gz"
+            make_targz(filename, includes=includes)
+            bundles['bundle'] = filename
 
         fe_dist = FE_DIST.strip() if FE_DIST else ''
-        fe_dist_mapping = {}
         if fe_dist:
-            fe_deploy_dist = box['feDist']
-            fe_dist_mapping = {fe_dist: fe_deploy_dist}
-
-        make_targz(filename, includes=includes, fe_dist_mapping=fe_dist_mapping)
+            fe_dist_mapping = {fe_dist: fe_bundle_name}
+            filename = f"{current_dir}/{fe_bundle_name}.tar.gz"
+            make_targz(filename, includes=[], fe_dist_mapping=fe_dist_mapping)
+            bundles['fe_bundle'] = filename
 
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/upload'
-        files = {'file': open(filename, 'rb')}
+        files = {bname: open(fname, 'rb') for bname, fname in bundles.items()}
+
         r = requests.post(url, files=files, headers=self.get_headers())
         result = self.get_json_response(r)
         upadted_box = result.get('box')
 
+        print('\n\n')
+        print(f'box status:')
         self.display_boxes([upadted_box] if upadted_box else [])
+        print('\n')
         print(result['status'])
+
+        for _, f in files.items():
+            f.close()
 
     def fetch_log(self, box_id: int):
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/app_log?process_num=0'

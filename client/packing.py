@@ -18,10 +18,10 @@ def make_targz(output_filename, includes: List[str], fe_dist_mapping: Dict[str, 
 
     def exclude_function(tarinfo):
         file_path = tarinfo.name
-        print(file_path)
         if _check_ignore(file_path, excludes, exclude_suffixes):
             return None
         else:
+            print(file_path)
             return tarinfo
     with tarfile.open(output_filename, "w:gz") as tar:
         for file_path in includes:

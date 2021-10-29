@@ -8,6 +8,7 @@ import typing
 from pathlib import Path
 from typing import Optional, List
 
+from fastapi import UploadFile
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -16,6 +17,7 @@ from app.domain.entities.box import BoxEntity
 from app.domain.services import errors
 from app.domain.services.base import BaseService
 from app.domain.services.errors import NewEntityFailException
+from app.domain.utils.file import gen_file_structure
 from app.domain.utils.nginx import gen_nginx_conf
 from app.domain.utils.supervisor import gen_supervisor_conf
 from app.infra.repository import RepoQuery, PageParams
@@ -107,7 +109,7 @@ class BoxService(BaseService):
         repo.save(box)
         return self.get_box(box_id)
 
-    def deploy_in_box(self, box_id: int, project_id: int, user_id: int, file: typing.IO) -> str:
+    def deploy_in_box(self, box_id: int, project_id: int, user_id: int, bundle: UploadFile) -> str:
         box = self.get_box(box_id)
         if not box:
             raise errors.EntityDoesNotExist(box_id)
@@ -116,15 +118,30 @@ class BoxService(BaseService):
 
         self.check_project(box.project.id, project_id)
 
-        shutil.rmtree(box.code_dir, ignore_errors=True)
+        is_fe_bundle = bundle.filename.startswith(box.fe_dist_name)
+        with tarfile.open(fileobj=bundle.file, mode='r:gz') as tar:
+            if is_fe_bundle:
+                shutil.rmtree(box.fe_code_dir, ignore_errors=True)
+                tar.extractall(box.box_dir)
+            else:
+                shutil.rmtree(box.code_dir, ignore_errors=True)
+                tar.extractall(box.code_dir)
 
-        with tarfile.open(fileobj=file, mode='r:gz') as tar:
-            tar.extractall(box.code_dir)
+        if not is_fe_bundle:
+            output = f'supervisor status:\n{"-" * 50}\n'
+            output += self._restart_supervisor(box)
+            output += '\n\n'
+        else:
+            output = f'fe dir structure:\n{"-" * 50}\n'
+            output += gen_file_structure(box.fe_code_dir)
+            output += '\n\n'
+        return output
 
+    def _restart_supervisor(self, box):
         subprocess.call(['sudo', 'supervisorctl', 'restart', f'{box.app_name}:'])
 
         output = subprocess.check_output(['sudo', 'supervisorctl', 'status', f'{box.app_name}:']).decode('utf-8')
-        box = self._repo_generator(Box).get(box_id)
+        box = self._repo_generator(Box).get(box.id)
         if 'RUNNING' in output:
             box.status = BoxStatus.on
             box.start_time = datetime.datetime.now()
@@ -133,12 +150,6 @@ class BoxService(BaseService):
         self._repo_generator(Box).save(box)
         return output
 
-    def list_files(self, box_id: int, path: str = ''):
-        box = self.get_box(box_id)
-        if not box:
-            raise errors.EntityDoesNotExist(box_id)
-
-        return subprocess.check_output(['ls', '-al', f'{box.box_dir}/{path}']).decode('utf-8')
 
     def list_files(self, box_id: int, path: str = ''):
         box = self.get_box(box_id)
