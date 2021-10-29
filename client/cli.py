@@ -75,7 +75,7 @@ class Session(object):
         resp = requests.get(url, headers=self.get_headers())
         result = self.get_json_response(resp)
 
-        self.display_boxes(result.get('list', []))
+        self.display_boxes(result.get('list', [])[::-1])
 
     def free_box(self, box_id: int):
         box = self.operate_box(box_id, BoxOperation.free)
