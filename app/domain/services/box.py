@@ -59,7 +59,7 @@ class BoxService(BaseService):
 
     def init_box(self, box: BoxEntity):
         Path(box.code_dir).mkdir(parents=True, exist_ok=True)
-        Path(box.fe_dir).mkdir(parents=True, exist_ok=True)
+        Path(box.fe_dist_dir).mkdir(parents=True, exist_ok=True)
         Path(box.logs_dir).mkdir(parents=True, exist_ok=True)
         gen_supervisor_conf(box)
         gen_nginx_conf(box)
@@ -121,7 +121,7 @@ class BoxService(BaseService):
         is_fe_bundle = bundle.filename.startswith(box.fe_dist_name)
         with tarfile.open(fileobj=bundle.file, mode='r:gz') as tar:
             if is_fe_bundle:
-                shutil.rmtree(box.fe_code_dir, ignore_errors=True)
+                shutil.rmtree(box.fe_dist_dir, ignore_errors=True)
                 tar.extractall(box.box_dir)
             else:
                 shutil.rmtree(box.code_dir, ignore_errors=True)
@@ -133,7 +133,7 @@ class BoxService(BaseService):
             output += '\n\n'
         else:
             output = f'fe dir structure:\n{"-" * 50}\n'
-            output += gen_file_structure(box.fe_code_dir)
+            output += gen_file_structure(box.fe_dist_dir)
             output += '\n\n'
         return output
 

@@ -13,3 +13,4 @@ class Project(SQLModel, DateTimeModelMixin, table=True):
     port_prefix: str
     run_command: str
     url_paths: str
+    environment_variables: str

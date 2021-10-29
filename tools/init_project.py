@@ -19,8 +19,9 @@ from app.domain.services.project import ProjectService
 @click.option("--port_prefix", default='90', prompt="Please give a port prefix, e.g. 90", help="port prefix")
 @click.option("--url_paths", default='api', prompt="Please give the valid paths as nginx location", help="url paths")
 @click.option("--run_command", default='python app.py', prompt="Please give a command to run a server", help="run command")
+@click.option("--environment_variables", default='', prompt="Please give environment variables. e.g. SEAL_TEST='True'", help="environment variables")
 @click.option("--count", default=2, prompt="How many boxes do you want?", help="box count")
-def main(project_name, domain, uat_name, port_prefix, url_paths, run_command, count):
+def main(project_name, domain, uat_name, port_prefix, url_paths, run_command, environment_variables, count):
     project_service = ServiceFactory.shared_service(ProjectService)
     box_service = ServiceFactory.shared_service(BoxService)
 
@@ -28,7 +29,7 @@ def main(project_name, domain, uat_name, port_prefix, url_paths, run_command, co
     if not project:
         project = project_service.new_project(
             name=project_name, domain=domain, uat_name=uat_name, port_prefix=port_prefix,
-            url_paths=url_paths, run_command=run_command)
+            url_paths=url_paths, run_command=run_command, environment_variables=environment_variables)
     if not project:
         print('创建项目失败，可能已存在同名项目')
         return

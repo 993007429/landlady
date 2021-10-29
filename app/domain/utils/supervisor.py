@@ -13,6 +13,7 @@ def gen_supervisor_conf(box: BoxEntity):
         f'{box.project.run_command} --port={box.port_prefix}%(process_num)01d')
     config.set(section, 'process_name', f'%(program_name)s-{box.port_prefix}%(process_num)01d')
     config.set(section, 'user', OPS_USER)
+    config.set(section, 'environment', box.project.environment_variables or f'{box.project.name.upper()}_TEST="True"')
     config.set(section, 'directory', box.code_dir)
     config.set(section, 'numprocs', box.numprocs)
     config.set(section, 'numprocs_start', '0')

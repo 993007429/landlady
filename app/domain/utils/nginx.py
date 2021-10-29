@@ -17,7 +17,7 @@ def gen_nginx_conf(box: BoxEntity):
         nginx.Location(
             '/',
             nginx.Key('add_header', 'Access-Control-Allow-Origin *'),
-            nginx.Key('root', f'{box.fe_dir}'),
+            nginx.Key('root', f'{box.fe_dist_dir}'),
             nginx.Key('access_log', 'off')
         ),
         nginx.Location(

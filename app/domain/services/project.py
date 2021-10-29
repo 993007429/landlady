@@ -12,10 +12,10 @@ from app.infra.repository import RepoQuery, PageParams
 class ProjectService(BaseService):
 
     def new_project(self, name: str, domain: str, uat_name: str, port_prefix: int,
-                    url_paths: str, run_command: str) -> Optional[ProjectEntity]:
+                    url_paths: str, run_command: str, environment_variables: str) -> Optional[ProjectEntity]:
         project = Project(
             name=name, domain=domain, uat_name=uat_name, port_prefix=port_prefix,
-            url_paths=url_paths, run_command=run_command)
+            url_paths=url_paths, run_command=run_command, environment_variables=environment_variables)
         self._repo_generator(Project).save(project)
         if project.id:
             return self.entity_adapter.to_project_entity(project)

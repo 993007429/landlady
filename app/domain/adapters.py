@@ -35,6 +35,8 @@ class EntityAdapter:
             return None
         entity = ProjectEntity(
             id=project.id, name=project.name, domain=project.domain, uat_name=project.uat_name,
-            port_prefix=project.port_prefix, url_paths=project.url_paths.split(','), run_command=project.run_command)
+            port_prefix=project.port_prefix, url_paths=project.url_paths.split(','), run_command=project.run_command,
+            environment_variables=project.environment_variables
+        )
 
         return entity

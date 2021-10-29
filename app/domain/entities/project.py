@@ -11,3 +11,4 @@ class ProjectEntity(RWModel):
     port_prefix: str
     url_paths: List[str]
     run_command: str = ''
+    environment_variables: str = ''

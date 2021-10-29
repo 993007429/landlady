@@ -13,9 +13,7 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+from app.db.models import *   # type: ignore
 from app.config import DATABASE_URL
 from sqlmodel import SQLModel
 

@@ -36,7 +36,7 @@ class BoxEntity(RWModel):
         return f'{self.project.name}-fe'
 
     @property
-    def fe_code_dir(self) -> str:
+    def fe_dist_dir(self) -> str:
         return f'{self.box_dir}/{self.fe_dist_name}'
 
     @property
