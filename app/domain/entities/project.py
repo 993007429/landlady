@@ -8,7 +8,7 @@ class ProjectEntity(RWModel):
     name: str
     domain: str
     uat_name: str
-    port_prefix: str
+    port_prefix: int
     url_paths: List[str]
     run_command: str = ''
     environment_variables: str = ''

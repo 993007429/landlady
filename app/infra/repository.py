@@ -49,6 +49,14 @@ class Repository(Generic[M]):
             logger.exception(e)
             self.session.rollback()
 
+    def update(self, id, **kwargs):
+        try:
+            self.session.query(self.model_class).filter_by(id=id).update(kwargs)
+            self.session.commit()
+        except SQLAlchemyError as e:
+            logger.exception(e)
+            self.session.rollback()
+
     def delete(self, model: M):
         try:
             self.session.query(model.__class__).filter_by(id=model.id).delete()

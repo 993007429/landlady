@@ -10,7 +10,7 @@ class Project(SQLModel, DateTimeModelMixin, table=True):
     name: str = Field(sa_column_kwargs={'unique': True})
     domain: str
     uat_name: str
-    port_prefix: str
+    port_prefix: int
     run_command: str
     url_paths: str
     environment_variables: str

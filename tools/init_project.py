@@ -35,7 +35,7 @@ def main(project_name, domain, uat_name, port_prefix, url_paths, run_command, en
         return
 
     port_prefix = project_service.alloc_server_port(project)
-    all_boxes = box_service.get_boxes_by_project(project_id=project.id, limit=1000)
+    all_boxes = project_service.get_boxes(project_id=project.id, limit=1000)
     for box in all_boxes:
         box_service.delete_box(box.id)
 

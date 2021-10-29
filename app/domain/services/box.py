@@ -4,12 +4,10 @@ import pathlib
 import shutil
 import subprocess
 import tarfile
-import typing
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 from fastapi import UploadFile
-from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.db.models.box import Box, BoxStatus
@@ -20,7 +18,6 @@ from app.domain.services.errors import NewEntityFailException
 from app.domain.utils.file import gen_file_structure
 from app.domain.utils.nginx import gen_nginx_conf
 from app.domain.utils.supervisor import gen_supervisor_conf
-from app.infra.repository import RepoQuery, PageParams
 
 
 class BoxOperation(enum.Enum):
@@ -30,7 +27,7 @@ class BoxOperation(enum.Enum):
 
 class BoxService(BaseService):
 
-    def new_box(self, project_id: int, user_id: int, port_prefix: str, numprocs: int) -> BoxEntity:
+    def new_box(self, project_id: int, user_id: int, port_prefix: int, numprocs: int) -> BoxEntity:
         try:
             box = Box(
                 project_id=project_id,
@@ -69,16 +66,6 @@ class BoxService(BaseService):
         if not box:
             return None
         return self.entity_adapter.to_box_entity(box)
-
-    def get_boxes_by_project(self, project_id: int, offset: int = 0, limit: int = 20) -> List[BoxEntity]:
-        boxes = self._repo_generator(Box).get_models_by_query(
-            RepoQuery(
-                params={'project_id': project_id},
-                order_by=[(Box.id, desc)],
-                page_params=PageParams(offset=offset, limit=limit)
-            )
-        )
-        return [self.entity_adapter.to_box_entity(box) for box in boxes if box]
 
     def check_project(self, box_project_id: int, project_id: int):
         if box_project_id != project_id:

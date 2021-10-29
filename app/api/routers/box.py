@@ -16,6 +16,7 @@ from app.domain.entities.box import BoxEntity
 from app.domain.services import errors
 from app.domain.services.box import BoxService, BoxOperation
 from app.domain.services.factory import ServiceFactory
+from app.domain.services.project import ProjectService
 from app.resources import strings
 
 router = APIRouter()
@@ -30,8 +31,8 @@ async def get_box_list(
         project_id: int,
         limit: int = Query(20, ge=1),
         offset: int = Query(0, ge=0),
-        box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))) -> ModelListResponse[BoxEntity]:
-    boxes = box_service.get_boxes_by_project(project_id, offset, limit)
+        project_service: ProjectService = Depends(ServiceFactory.dependency(ProjectService))) -> ModelListResponse[BoxEntity]:
+    boxes = project_service.get_boxes(project_id, offset, limit)
     return ModelListResponse(
         list=boxes,
         start=offset,
