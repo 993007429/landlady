@@ -50,12 +50,13 @@ async def update_box(
         box_id: int,
         project_id: int,
         operation: BoxOperation,
-        current_user: Optional[User] = Depends(get_current_user_authorizer()),
+        force: bool,
+        current_user: User = Depends(get_current_user_authorizer()),
         box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))) -> BoxResponse:
     box, error_msg = None, None
     try:
         box = box_service.operate_box(
-            box_id=box_id, project_id=project_id, user_id=current_user.id, operation=operation)
+            box_id=box_id, project_id=project_id, user_id=current_user.id, operation=operation, force=force)
     except errors.EntityDoesNotExist:
         error_msg = strings.BOX_NOT_EXIST
     except errors.BoxUnavailableException:
@@ -85,7 +86,7 @@ async def upload_in_box(
         project_id: int,
         bundle: Optional[UploadFile] = File(None),
         fe_bundle: Optional[UploadFile] = File(None),
-        current_user: Optional[User] = Depends(get_current_user_authorizer()),
+        current_user: User = Depends(get_current_user_authorizer()),
         box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))) -> BoxStatusResponse:
     err_msg = None
     try:

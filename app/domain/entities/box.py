@@ -18,6 +18,7 @@ class BoxEntity(RWModel):
     id: int
     project: Optional[ProjectEntity] = None
     user: Optional[UserEntity] = None
+    fe_owner: Optional[UserEntity] = None
     status: BoxStatus = BoxStatus.off
     port_prefix: int = None
     numprocs: int = None

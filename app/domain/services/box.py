@@ -22,7 +22,8 @@ from app.domain.utils.supervisor import gen_supervisor_conf
 
 class BoxOperation(enum.Enum):
     apply = '1'
-    free = '2'
+    apply_fe = '2'
+    free = '3'
 
 
 class BoxService(BaseService):
@@ -75,7 +76,8 @@ class BoxService(BaseService):
         if not box_ower_id or box_ower_id != user_id:
             raise errors.WrongBoxException()
 
-    def operate_box(self, box_id: int, project_id: int, user_id: int, operation: BoxOperation) -> Optional[BoxEntity]:
+    def operate_box(self, box_id: int, project_id: int, user_id: int, operation: BoxOperation,
+                    force: bool = False) -> Optional[BoxEntity]:
         repo = self._repo_generator(Box)
         box = repo.get(box_id)
         if not box:
@@ -86,12 +88,20 @@ class BoxService(BaseService):
         if operation == BoxOperation.apply:
             if box.user_id == user_id:
                 return self.get_box(box_id)
-            elif box.user_id:
+            elif box.user_id and not force:
                 raise errors.BoxUnavailableException(box_id)
             box.user_id = user_id
-        else:
-            self.check_box_owner(box.user_id, user_id)
-            box.user_id = 0
+        elif operation == BoxOperation.apply_fe:
+            if box.fe_owner_id == user_id:
+                return self.get_box(box_id)
+            elif box.fe_owner_id and not force:
+                raise errors.BoxUnavailableException(box_id)
+            box.fe_owner_id = user_id
+        elif operation == BoxOperation.free:
+            if box.user_id == user_id:
+                box.user_id = 0
+            if box.fe_owner_id == user_id:
+                box.fe_owner_id = 0
 
         repo.save(box)
         return self.get_box(box_id)
@@ -101,11 +111,12 @@ class BoxService(BaseService):
         if not box:
             raise errors.EntityDoesNotExist(box_id)
 
-        self.operate_box(box_id, project_id, user_id, BoxOperation.apply)
+        is_fe_bundle = bundle.filename.startswith(box.fe_dist_name)
+
+        self.operate_box(box_id, project_id, user_id, BoxOperation.apply_fe if is_fe_bundle else BoxOperation.apply)
 
         self.check_project(box.project.id, project_id)
 
-        is_fe_bundle = bundle.filename.startswith(box.fe_dist_name)
         with tarfile.open(fileobj=bundle.file, mode='r:gz') as tar:
             if is_fe_bundle:
                 shutil.rmtree(box.fe_dist_dir, ignore_errors=True)

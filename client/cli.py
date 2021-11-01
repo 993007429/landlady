@@ -7,21 +7,23 @@ import requests
 import sseclient
 from prettytable import PrettyTable
 
-from client.config import DEPLOY_ENDPOINT, JWT_TOKEN, PROJECT_ID, JWT_TOKEN_PREFIX, INCLUDE_FILES, FE_DIST
+from client.config import DEPLOY_ENDPOINT, JWT_TOKEN, PROJECT_ID, JWT_TOKEN_PREFIX, BACKEND_INCLUDE, FE_DIST
 from client.packing import make_targz
 
 
 class BoxOperation(enum.Enum):
     apply = '1'
-    free = '2'
+    apply_fe = '2'
+    free = '3'
 
 
 class CLI(object):
-    def __init__(self, box_id: int, command: str, arg: str):
+    def __init__(self, box_id: int, command: str, arg: str, **options):
         self.command = command
         self.box_id = box_id
         self.arg = arg
         self.session = Session()
+        self.options = options
 
     def __call__(self):
         if not self.box_id:
@@ -32,7 +34,8 @@ class CLI(object):
                 return
         else:
             if self.command == 'deploy':
-                self.session.deploy_in_box(self.box_id)
+                force = self.options.get('force', False)
+                self.session.deploy_in_box(self.box_id, force=force)
             elif self.command == 'free':
                 self.session.free_box(self.box_id)
             elif self.command == 'log':
@@ -81,28 +84,33 @@ class Session(object):
         box = self.operate_box(box_id, BoxOperation.free)
         self.display_boxes([box] if box else [])
 
-    def operate_box(self, box_id: int, operation: BoxOperation) -> dict:
+    def operate_box(self, box_id: int, operation: BoxOperation, force: bool = False) -> dict:
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}'
-        r = requests.put(url, params={'operation': operation.value}, headers=self.get_headers())
+        r = requests.put(url, params={'operation': operation.value, 'force': force}, headers=self.get_headers())
         result = self.get_json_response(r)
         box = result.get('box')
         return box
 
-    def deploy_in_box(self, box_id: int):
-        box = self.operate_box(box_id, BoxOperation.apply)
+    def deploy_in_box(self, box_id: int, force: bool = False):
+        backend_include = BACKEND_INCLUDE.strip() if BACKEND_INCLUDE else ''
+        fe_dist = FE_DIST.strip() if FE_DIST else ''
+        if backend_include:
+            box = self.operate_box(box_id, BoxOperation.apply, force=force)
+        if fe_dist:
+            box = self.operate_box(box_id, BoxOperation.apply_fe)
+
         current_dir = os.getcwd()
         bundle_name = box['project']['name']
         fe_bundle_name = box['feDistName']
 
         bundles = {}
 
-        if INCLUDE_FILES.strip():
-            includes = [item.strip() for item in INCLUDE_FILES.split(',')]
+        if backend_include:
+            includes = [item.strip() for item in backend_include.split(',')]
             filename = f"{current_dir}/{bundle_name}.tar.gz"
             make_targz(filename, includes=includes)
             bundles['bundle'] = filename
 
-        fe_dist = FE_DIST.strip() if FE_DIST else ''
         if fe_dist:
             fe_dist_mapping = {fe_dist: fe_bundle_name}
             filename = f"{current_dir}/{fe_bundle_name}.tar.gz"
@@ -133,12 +141,13 @@ class Session(object):
                 print(event.data)
 
     def display_boxes(self, boxes: List[dict]):
-        pt = PrettyTable(['box_id', 'endpoint', '使用人', '开始时间', 'status'])
+        pt = PrettyTable(['box_id', 'endpoint', 'owner', 'fe_owner', 'start_time', 'status'])
         for box in boxes:
             pt.add_row([
                 box['id'],
                 box['endpoint'],
-                (box.get('user') or {}).get('name', '空闲'),
+                (box.get('user') or {}).get('name', ''),
+                (box.get('feOwner') or {}).get('name', ''),
                 box['startTime'] or '',
                 box['status']])
         print(pt)
@@ -158,7 +167,8 @@ class Session(object):
 @click.argument('arg1', required=False)
 @click.argument('arg2', required=False)
 @click.argument('arg3', required=False)
-def main(arg1='', arg2='', arg3=''):
+@click.option('--force', default=False)
+def main(arg1='', arg2='', arg3='', force=False):
     if arg1.isdigit():
         box_id = int(arg1)
         command, arg = arg2, arg3
@@ -166,7 +176,7 @@ def main(arg1='', arg2='', arg3=''):
         box_id = None
         command, arg = arg1, arg2
     try:
-        cli = CLI(box_id=box_id, command=command, arg=arg)
+        cli = CLI(box_id, command, arg, force=force)
         cli()
     except ServerErrorException as e:
         print(e.msg or '服务端错误')

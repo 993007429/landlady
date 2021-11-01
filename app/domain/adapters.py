@@ -18,6 +18,7 @@ class EntityAdapter:
         entity = BoxEntity(id=box.id)
         entity.project = self.to_project_entity(repos(Project).get(box.project_id))
         entity.user = self.to_user_entity(repos(User).get(box.user_id))
+        entity.fe_owner = self.to_user_entity(repos(User).get(box.fe_owner_id))
         entity.port_prefix = box.port_prefix
         entity.numprocs = box.numprocs
         entity.start_time = box.start_time

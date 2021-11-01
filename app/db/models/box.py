@@ -11,8 +11,9 @@ from app.domain.entities.box import BoxStatus
 class Box(SQLModel, DateTimeModelMixin, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     project_id: int
-    user_id: int
+    user_id: Optional[int]
     port_prefix: Optional[int]
     numprocs: int = 1
+    fe_owner_id: Optional[int]
     status: BoxStatus = Field(sa_column=Column(Enum(BoxStatus)))
     start_time: datetime = None
