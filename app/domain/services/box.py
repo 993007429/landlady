@@ -1,5 +1,6 @@
 import datetime
 import enum
+import os
 import pathlib
 import shutil
 import subprocess
@@ -42,7 +43,7 @@ class BoxService(BaseService):
         except SQLAlchemyError as e:
             raise NewEntityFailException() from e
 
-    def delete_box(self, box_id) -> bool:
+    def delete_box(self, box_id: int) -> bool:
         box = self._repo_generator(Box).get(box_id)
         if box:
             box_entity = self.entity_adapter.to_box_entity(box)
@@ -59,6 +60,7 @@ class BoxService(BaseService):
         Path(box.code_dir).mkdir(parents=True, exist_ok=True)
         Path(box.fe_dist_dir).mkdir(parents=True, exist_ok=True)
         Path(box.logs_dir).mkdir(parents=True, exist_ok=True)
+        self._create_venv(box)
         gen_supervisor_conf(box)
         gen_nginx_conf(box)
 
@@ -81,7 +83,7 @@ class BoxService(BaseService):
         repo = self._repo_generator(Box)
         box = repo.get(box_id)
         if not box:
-            raise errors.EntityDoesNotExist(box_id)
+            raise errors.BoxNotExistException(box_id)
 
         self.check_project(box.project_id, project_id)
 
@@ -109,7 +111,7 @@ class BoxService(BaseService):
     def deploy_in_box(self, box_id: int, project_id: int, user_id: int, bundle: UploadFile) -> str:
         box = self.get_box(box_id)
         if not box:
-            raise errors.EntityDoesNotExist(box_id)
+            raise errors.BoxNotExistException(box_id)
 
         is_fe_bundle = bundle.filename.startswith(box.fe_dist_name)
 
@@ -135,10 +137,13 @@ class BoxService(BaseService):
             output += '\n\n'
         return output
 
-    def _restart_supervisor(self, box):
+    def _restart_supervisor(self, box: BoxEntity):
         subprocess.call(['sudo', 'supervisorctl', 'restart', f'{box.app_name}:'])
 
-        output = subprocess.check_output(['sudo', 'supervisorctl', 'status', f'{box.app_name}:']).decode('utf-8')
+        try:
+            output = subprocess.check_output(['sudo', 'supervisorctl', 'status', f'{box.app_name}:']).decode('utf-8')
+        except subprocess.CalledProcessError as e:
+            output = e.output.decode('utf-8')
         box = self._repo_generator(Box).get(box.id)
         if 'RUNNING' in output:
             box.status = BoxStatus.on
@@ -148,10 +153,32 @@ class BoxService(BaseService):
         self._repo_generator(Box).save(box)
         return output
 
+    def _create_venv(self, box: BoxEntity):
+        Path(box.venv).mkdir(parents=True, exist_ok=True)
+        subprocess.call(['virtualenv', box.venv])
 
     def list_files(self, box_id: int, path: str = ''):
         box = self.get_box(box_id)
         if not box:
-            raise errors.EntityDoesNotExist(box_id)
+            raise errors.BoxNotExistException(box_id)
 
         return subprocess.check_output(['ls', '-al', f'{box.box_dir}/{path}']).decode('utf-8')
+
+    def pip_in_box(self, box_id: int, user_id: int, command: str, package_name: str) -> str:
+        box = self.get_box(box_id)
+        if not box:
+            raise errors.BoxNotExistException(box_id)
+
+        self.check_box_owner(box.user.id if box.user else 0, user_id)
+
+        popenargs = [f'{box.venv}/bin/pip', command]
+        if command == 'uninstall':
+            popenargs.append('-y')
+        elif command == 'install' and not package_name:
+            popenargs.append('-r')
+            popenargs.append(f'{box.code_dir}/requirements.txt')
+
+        if package_name:
+            popenargs.append(package_name)
+
+        return subprocess.check_output(popenargs).decode('utf-8')

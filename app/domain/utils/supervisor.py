@@ -10,7 +10,7 @@ def gen_supervisor_conf(box: BoxEntity):
     config.add_section(section)
     config.set(
         section, 'command',
-        f'{box.project.run_command} --port={box.port_prefix}%(process_num)01d')
+        f'{box.venv}/bin/{box.project.run_command} --port={box.port_prefix}%(process_num)01d')
     config.set(section, 'process_name', f'%(program_name)s-{box.port_prefix}%(process_num)01d')
     config.set(section, 'user', OPS_USER)
     config.set(section, 'environment', box.project.environment_variables or f'{box.project.name.upper()}_TEST="True"')

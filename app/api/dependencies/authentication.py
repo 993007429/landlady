@@ -73,7 +73,7 @@ def _get_current_user(
     try:
         jwt_user = get_user_by_token(token)
         return user_service.get_user(jwt_user.uid)
-    except (ValueError, errors.EntityDoesNotExist):
+    except (ValueError, errors.BoxNotExistException):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=strings.MALFORMED_PAYLOAD,

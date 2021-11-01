@@ -1,5 +1,6 @@
 import asyncio
 import os
+import traceback
 from asyncio import CancelledError
 from subprocess import CalledProcessError
 from typing import Optional
@@ -10,7 +11,7 @@ from starlette.responses import FileResponse, PlainTextResponse
 
 from app.api.dependencies.authentication import get_current_user_authorizer
 from app.api.schemas.box import BoxResponse, BoxStatusResponse
-from app.api.schemas.common import ModelListResponse
+from app.api.schemas.common import ModelListResponse, SuccessResponse
 from app.db.models.user import User
 from app.domain.entities.box import BoxEntity
 from app.domain.services import errors
@@ -57,7 +58,7 @@ async def update_box(
     try:
         box = box_service.operate_box(
             box_id=box_id, project_id=project_id, user_id=current_user.id, operation=operation, force=force)
-    except errors.EntityDoesNotExist:
+    except errors.BoxNotExistException:
         error_msg = strings.BOX_NOT_EXIST
     except errors.BoxUnavailableException:
         error_msg = strings.BOX_UNAVAILABLE
@@ -99,7 +100,7 @@ async def upload_in_box(
                 box_id, project_id, current_user.id, fe_bundle)
         box = box_service.get_box(box_id)
         return BoxStatusResponse(status=output, box=box)
-    except errors.EntityDoesNotExist:
+    except errors.BoxNotExistException:
         err_msg = strings.BOX_NOT_EXIST
     except errors.WrongProjectException:
         err_msg = strings.WRONG_PROJECT
@@ -158,21 +159,26 @@ async def get_logs(
 @router.get(
     "/projects/{project_id}/boxes/{box_id}/files/list",
     name="box:list-files-in-box",
-    response_class=PlainTextResponse,
+    response_model=SuccessResponse,
 )
 async def list_files(
         box_id: int,
         path: str = '',
         box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))):
     try:
-        return box_service.list_files(box_id, path)
-    except errors.EntityDoesNotExist:
+        output = box_service.list_files(box_id, path)
+        return SuccessResponse(msg=output)
+
+    except errors.BoxNotExistException:
         raise HTTPException(
             status_code=404,
             detail=f'box(id={box_id})不存在',
         )
-    except CalledProcessError:
-        return ''
+    except CalledProcessError as e:
+        raise HTTPException(
+            status_code=422,
+            detail=e,
+        )
 
 
 @router.get(
@@ -192,3 +198,35 @@ async def show_file(
         )
 
     return f'{box.box_dir}/{filename}'
+
+
+@router.put(
+    '/projects/{project_id}/boxes/{box_id}/pip',
+    name='box:pip-in-box',
+    response_model=SuccessResponse
+)
+async def pip_in_box(
+        box_id: int,
+        command: str,
+        package_name: Optional[str] = '',
+        current_user: User = Depends(get_current_user_authorizer()),
+        box_service: BoxService = Depends(ServiceFactory.dependency(BoxService))) -> BoxResponse:
+
+        error_msg, output = '', ''
+        try:
+            output = box_service.pip_in_box(box_id, current_user.id, command, package_name)
+            return SuccessResponse(msg=output)
+        except errors.BoxNotExistException as e:
+            error_msg = f'box(id={e.box_id})不存在'
+        except errors.VirtualenvNotExistException as e:
+            error_msg = f'virtualenv(box_id={e.box_id})不存在',
+        except errors.WrongBoxException:
+            error_msg = strings.WRONG_BOX
+        except CalledProcessError:
+            error_msg = traceback.format_exc()
+        finally:
+            if not output:
+                raise HTTPException(
+                    status_code=400,
+                    detail=error_msg or '操作失败',
+                )

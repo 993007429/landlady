@@ -1,22 +1,22 @@
-class EntityDoesNotExist(Exception):
-    """Raised when entity was not found in database."""
+class BoxException(Exception):
 
-    def __init__(self, entity_id):
-        self.entity_id = entity_id
+    def __init__(self, box_id):
+        self.box_id = box_id
 
 
-class BoxUnavailableException(Exception):
+class BoxNotExistException(BoxException):
+    """Raised when box was not found in database."""
+
+
+class BoxUnavailableException(BoxException):
     """
     box不可用
     """
 
-    def __init__(self, entity_id):
-        self.entity_id = entity_id
 
-
-class InvalidOperationException(Exception):
+class VirtualenvNotExistException(BoxException):
     """
-    无效操作
+    virtualenv环境不存在
     """
 
 

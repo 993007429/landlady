@@ -18,16 +18,17 @@ class BoxOperation(enum.Enum):
 
 
 class CLI(object):
-    def __init__(self, box_id: int, command: str, arg: str, **options):
+    def __init__(self, box_id: int, command: str, arg1: str, arg2: str, **options):
         self.command = command
         self.box_id = box_id
-        self.arg = arg
+        self.arg1 = arg1
+        self.arg2 = arg2
         self.session = Session()
         self.options = options
 
     def __call__(self):
         if not self.box_id:
-            if self.command == 'list' and not self.arg:
+            if self.command == 'list' and not self.arg1:
                 self.session.list_box()
             else:
                 print('请指定box_id')
@@ -36,16 +37,18 @@ class CLI(object):
             if self.command == 'deploy':
                 force = self.options.get('force', False)
                 self.session.deploy_in_box(self.box_id, force=force)
+            elif self.command == 'pip':
+                self.session.pip_in_box(self.box_id, command=self.arg1, package_name=self.arg2)
             elif self.command == 'free':
                 self.session.free_box(self.box_id)
             elif self.command == 'log':
                 self.session.fetch_log(self.box_id)
             elif self.command == 'ls':
-                self.session.list_files(box_id=self.box_id, path=self.arg)
+                self.session.list_files(box_id=self.box_id, path=self.arg1)
             elif self.command == 'cat':
-                if not self.arg:
+                if not self.arg1:
                     print('请指定要查看的文件名, e.g. box [box id] cat nginx.conf ')
-                self.session.show_file(box_id=self.box_id, filename=self.arg)
+                self.session.show_file(box_id=self.box_id, filename=self.arg1)
 
 
 class ServerErrorException(Exception):
@@ -155,28 +158,37 @@ class Session(object):
     def list_files(self, box_id: int, path: str = ''):
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/files/list'
         r = requests.get(url, params={'path': path}, headers=self.get_headers())
-        print(r.text)
+        result = self.get_json_response(r)
+        print(result.get('msg'))
 
     def show_file(self, box_id: int, filename: str):
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/files/content'
         r = requests.get(url, params={'filename': filename}, headers=self.get_headers())
-        print(r.text)
+        result = self.get_json_response(r)
+        print(result.get('msg'))
+
+    def pip_in_box(self, box_id: int, command: str, package_name: str) -> dict:
+        url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/pip'
+        r = requests.put(url, params={'command': command, 'package_name': package_name}, headers=self.get_headers())
+        result = self.get_json_response(r)
+        print(result.get('msg'))
 
 
 @click.command()
 @click.argument('arg1', required=False)
 @click.argument('arg2', required=False)
 @click.argument('arg3', required=False)
+@click.argument('arg4', required=False)
 @click.option('--force', default=False)
-def main(arg1='', arg2='', arg3='', force=False):
+def main(arg1='', arg2='', arg3='', arg4='', force=False):
     if arg1.isdigit():
         box_id = int(arg1)
-        command, arg = arg2, arg3
+        command, _arg1, _arg2 = arg2, arg3, arg4
     else:
         box_id = None
-        command, arg = arg1, arg2
+        command, _arg1, _arg2 = arg1, arg2, arg3
     try:
-        cli = CLI(box_id, command, arg, force=force)
+        cli = CLI(box_id, command, _arg1, _arg2, force=force)
         cli()
     except ServerErrorException as e:
         print(e.msg or '服务端错误')

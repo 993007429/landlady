@@ -60,6 +60,10 @@ class BoxEntity(RWModel):
     def endpoint(self):
         return f'{self.project.uat_name}-{self.id}.{self.project.domain}'
 
+    @property
+    def venv(self):
+        return f'{self.box_dir}/venv'
+
     def log_file(self, process_num: int) -> str:
         return f'{self.logs_dir}/web-{self.port_prefix}{process_num}.log'
 
