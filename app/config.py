@@ -8,7 +8,7 @@ from starlette.datastructures import CommaSeparatedStrings
 API_PREFIX = "/api"
 
 JWT_TOKEN_PREFIX = "Token"  # noqa: S105
-VERSION = "0.0.0"
+VERSION = "0.0.1"
 
 PRODUCTION = os.environ.get('LANDLADY_PRODUCTION', 'false').upper() == 'TRUE'
 

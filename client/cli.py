@@ -68,7 +68,9 @@ class Session(object):
         try:
             result = resp.json()
         except ValueError:
-            raise ServerErrorException()
+            return {
+                'msg': resp.text
+            }
 
         msg = result.get('detail', '')
         if msg:
@@ -100,7 +102,7 @@ class Session(object):
         if backend_include:
             box = self.operate_box(box_id, BoxOperation.apply, force=force)
         if fe_dist:
-            box = self.operate_box(box_id, BoxOperation.apply_fe)
+            box = self.operate_box(box_id, BoxOperation.apply_fe, force=force)
 
         current_dir = os.getcwd()
         bundle_name = box['project']['name']
