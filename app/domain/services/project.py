@@ -65,6 +65,7 @@ class ProjectService(BaseService):
         project = self.get_project(id)
         if project:
             all_boxes = self.get_boxes(project_id=id, limit=1000)
+            port_prefix = 0
             for idx, box in enumerate(all_boxes[::-1]):
                 if 'port_prefix' in kwargs:
                     if idx == 0:
@@ -95,7 +96,9 @@ class ProjectService(BaseService):
 
         output = '\n\n'
         try:
-            output += subprocess.check_output([f'{project.uat_venv_dir}/bin/pip', 'install', '-r', 'requirements-dynamic.txt']).decode('utf-8')
+            output += subprocess.check_output(
+                [f'{project.uat_venv_dir}/bin/pip', 'install', '-r',
+                 f'{project.uat_code_dir}/requirements-dynamic.txt']).decode('utf-8')
         except subprocess.CalledProcessError as e:
             pass
 
