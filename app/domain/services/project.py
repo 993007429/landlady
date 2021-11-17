@@ -93,7 +93,13 @@ class ProjectService(BaseService):
             shutil.rmtree(project.uat_code_dir, ignore_errors=True)
             tar.extractall(project.uat_code_dir)
 
-        output = f'supervisor status:\n{"-" * 50}\n'
+        output = '\n\n'
+        try:
+            output += subprocess.check_output(['pip', 'install', '-r', 'requirements-dynamic.txt']).decode('utf-8')
+        except subprocess.CalledProcessError as e:
+            pass
+
+        output += f'supervisor status:\n{"-" * 50}\n'
         supervisor_group = f'{project.uat_app_name}:'
         subprocess.call(['sudo', 'supervisorctl', 'restart', supervisor_group])
         try:
