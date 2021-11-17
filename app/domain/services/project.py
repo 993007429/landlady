@@ -95,7 +95,7 @@ class ProjectService(BaseService):
 
         output = '\n\n'
         try:
-            output += subprocess.check_output(['pip', 'install', '-r', 'requirements-dynamic.txt']).decode('utf-8')
+            output += subprocess.check_output([f'{project.uat_venv_dir}/bin/pip', 'install', '-r', 'requirements-dynamic.txt']).decode('utf-8')
         except subprocess.CalledProcessError as e:
             pass
 
