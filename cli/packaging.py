@@ -1,7 +1,7 @@
 import tarfile
 from typing import List, Dict
 
-from client.config import EXCLUDE_DIRS, EXCLUDE_SUFFIX
+from cli.config import EXCLUDE_DIRS, EXCLUDE_SUFFIX
 
 
 def make_targz(output_filename, includes: List[str], fe_dist_mapping: Dict[str, str] = None) -> bool:

@@ -31,19 +31,20 @@ install_requires = [
 setup_options = dict(
     name='box',
     python_requires='>3.8.0',
-    version=find_version("client", "__init__.py"),
+    version=find_version("cli", "__init__.py"),
     description='Command Line Environment for UAT',
     long_description=read('README.rst'),
     author='ZHAO YU',
-    scripts=['client/cli.py'],
-    packages=find_packages(include=['client']),
+    scripts=['cli/box.py', 'cli/uat.py'],
+    packages=find_packages(include=['cli']),
     install_requires=install_requires,
     dependency_links=[
         'http://mirrors.idiaoyan.cn/repository/pypi/',
     ],
     entry_points={
         'console_scripts': [
-            'box = client.cli:main',
+            'box = cli.box:main',
+            'uat = cli.uat:main',
         ],
     },
 )

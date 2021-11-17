@@ -2,58 +2,19 @@ import enum
 import os
 from typing import Dict, Optional, List
 
-import click
 import requests
 import sseclient
 from prettytable import PrettyTable
 
-from client.config import DEPLOY_ENDPOINT, JWT_TOKEN, PROJECT_ID, JWT_TOKEN_PREFIX, BACKEND_INCLUDE, FE_DIST
-from client.packing import make_targz
+from cli.config import DEPLOY_ENDPOINT, JWT_TOKEN, PROJECT_ID, JWT_TOKEN_PREFIX, BACKEND_INCLUDE, FE_DIST
+from cli.exceptions import ServerErrorException
+from cli.packaging import make_targz
 
 
 class BoxOperation(enum.Enum):
     apply = '1'
     apply_fe = '2'
     free = '3'
-
-
-class CLI(object):
-    def __init__(self, box_id: int, command: str, arg1: str, arg2: str, **options):
-        self.command = command
-        self.box_id = box_id
-        self.arg1 = arg1
-        self.arg2 = arg2
-        self.session = Session()
-        self.options = options
-
-    def __call__(self):
-        if not self.box_id:
-            if self.command == 'list' and not self.arg1:
-                self.session.list_box()
-            else:
-                print('请指定box_id')
-                return
-        else:
-            if self.command == 'deploy':
-                force = self.options.get('force', False)
-                self.session.deploy_in_box(self.box_id, force=force)
-            elif self.command == 'pip':
-                self.session.pip_in_box(self.box_id, command=self.arg1, package_name=self.arg2)
-            elif self.command == 'free':
-                self.session.free_box(self.box_id)
-            elif self.command == 'log':
-                self.session.fetch_log(self.box_id)
-            elif self.command == 'ls':
-                self.session.list_files(box_id=self.box_id, path=self.arg1)
-            elif self.command == 'cat':
-                if not self.arg1:
-                    print('请指定要查看的文件名, e.g. box [box id] cat nginx.conf ')
-                self.session.show_file(box_id=self.box_id, filename=self.arg1)
-
-
-class ServerErrorException(Exception):
-    def __init__(self, msg=''):
-        self.msg = msg
 
 
 class Session(object):
@@ -99,10 +60,14 @@ class Session(object):
     def deploy_in_box(self, box_id: int, force: bool = False):
         backend_include = BACKEND_INCLUDE.strip() if BACKEND_INCLUDE else ''
         fe_dist = FE_DIST.strip() if FE_DIST else ''
+        box = None
         if backend_include:
             box = self.operate_box(box_id, BoxOperation.apply, force=force)
         if fe_dist:
             box = self.operate_box(box_id, BoxOperation.apply_fe, force=force)
+
+        if not box:
+            return
 
         current_dir = os.getcwd()
         bundle_name = box['project']['name']
@@ -133,6 +98,32 @@ class Session(object):
         print(f'box status:')
         self.display_boxes([upadted_box] if upadted_box else [])
         print('\n')
+        print(result['status'])
+
+        for _, f in files.items():
+            f.close()
+
+    def deploy_uat(self):
+        backend_include = BACKEND_INCLUDE.strip() if BACKEND_INCLUDE else ''
+
+        current_dir = os.getcwd()
+
+        bundles = {}
+
+        if backend_include:
+            includes = [item.strip() for item in backend_include.split(',')]
+            filename = f"{current_dir}/bundle.tar.gz"
+            make_targz(filename, includes=includes)
+            bundles['bundle'] = filename
+        else:
+            return
+
+        url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/uat/upload'
+        files = {bname: open(fname, 'rb') for bname, fname in bundles.items()}
+
+        r = requests.post(url, files=files, headers=self.get_headers())
+        result = self.get_json_response(r)
+
         print(result['status'])
 
         for _, f in files.items():
@@ -169,34 +160,8 @@ class Session(object):
         result = self.get_json_response(r)
         print(result.get('msg'))
 
-    def pip_in_box(self, box_id: int, command: str, package_name: str) -> dict:
+    def pip_in_box(self, box_id: int, command: str, package_name: str):
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/pip'
         r = requests.put(url, params={'command': command, 'package_name': package_name}, headers=self.get_headers())
         result = self.get_json_response(r)
         print(result.get('msg'))
-
-
-@click.command()
-@click.argument('arg1', required=False)
-@click.argument('arg2', required=False)
-@click.argument('arg3', required=False)
-@click.argument('arg4', required=False)
-@click.option('--force', default=False)
-def main(arg1='', arg2='', arg3='', arg4='', force=False):
-    if arg1.isdigit():
-        box_id = int(arg1)
-        command, _arg1, _arg2 = arg2, arg3, arg4
-    else:
-        box_id = None
-        command, _arg1, _arg2 = arg1, arg2, arg3
-    try:
-        cli = CLI(box_id, command, _arg1, _arg2, force=force)
-        cli()
-    except ServerErrorException as e:
-        print(e.msg or '服务端错误')
-    except ValueError:
-        print('参数不合法')
-
-
-if __name__ == '__main__':
-    main()
