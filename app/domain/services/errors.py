@@ -8,6 +8,16 @@ class BoxNotExistException(BoxException):
     """Raised when box was not found in database."""
 
 
+class ProjectNotExistException(BoxException):
+    """Raised when project was not found in database."""
+
+
+class AdminOnlyOperationException(Exception):
+    """
+    管理员才可操作
+    """
+
+
 class BoxUnavailableException(BoxException):
     """
     box不可用

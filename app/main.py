@@ -30,7 +30,6 @@ app.openapi = custom_openapi
 if DEBUG:
     try:
         import pydevd_pycharm
-
         pydevd_pycharm.settrace('127.0.0.1', port=8001, stdoutToServer=True, stderrToServer=True)
     except (ConnectionRefusedError, ModuleNotFoundError):
         pass
