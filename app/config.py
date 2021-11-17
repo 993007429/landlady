@@ -44,6 +44,7 @@ LOGIN_TOKEN_SECRET = config('LOGIN_TOKEN_SECRET', default='')
 BOX_ROOT = config('BOX_ROOT')
 OPS_USER = config('OPS_USER', default='ops')
 LOGS_PATH = config('LOGS_PATH', default='/data0/logs')
+APPS_PATH = config('APPS_PATH', default='/data0/www')
 
 ALLOWED_HOSTS: typing.List[str] = config(
     "ALLOWED_HOSTS",

@@ -1,6 +1,5 @@
 import datetime
 import enum
-import os
 import pathlib
 import shutil
 import subprocess

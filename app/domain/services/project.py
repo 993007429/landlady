@@ -1,8 +1,13 @@
+import shutil
+import subprocess
+import tarfile
 from typing import Optional, List
 
+from fastapi import UploadFile
 from sqlalchemy import desc
 
 from app.db.models import Box
+from app.db.models.admin import Admin
 from app.db.models.project import Project
 from app.domain.entities.box import BoxEntity
 from app.domain.entities.project import ProjectEntity
@@ -76,6 +81,27 @@ class ProjectService(BaseService):
                     if col in kwargs:
                         gen_supervisor_conf(box=box)
                         break
+
+    def deploy_uat(self, project_id: int, user_id: int, bundle: UploadFile) -> str:
+        project = self.get_project(project_id)
+
+        is_admin = self._repo_generator(Admin).exist(user_id=user_id)
+        if not is_admin:
+            raise errors.AdminOnlyOperationException()
+
+        with tarfile.open(fileobj=bundle.file, mode='r:gz') as tar:
+            shutil.rmtree(project.uat_code_dir, ignore_errors=True)
+            tar.extractall(project.uat_code_dir)
+
+        output = f'supervisor status:\n{"-" * 50}\n'
+        supervisor_group = f'{project.uat_app_name}:'
+        subprocess.call(['sudo', 'supervisorctl', 'restart', supervisor_group])
+        try:
+            output += subprocess.check_output(['sudo', 'supervisorctl', 'status', supervisor_group]).decode('utf-8')
+        except subprocess.CalledProcessError as e:
+            output += e.output.decode('utf-8')
+        output += '\n\n'
+        return output
 
     def alloc_server_port(self, project: ProjectEntity) -> int:
         boxes = self.get_boxes(project_id=project.id, limit=1)

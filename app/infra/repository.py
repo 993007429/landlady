@@ -87,6 +87,14 @@ class Repository(Generic[M]):
             query = query.offset(repo_query.page_params.offset).limit(repo_query.page_params.limit)
         return query.all()
 
+    def exist(self, **kwargs) -> bool:
+        """
+        查询是否存在
+        :return:
+        """
+        models = self.session.query(self.model_class).filter_by(**kwargs).all()
+        return len(models) > 0
+
 
 class RepoGenerator(object):
 

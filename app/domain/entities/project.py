@@ -1,5 +1,6 @@
 from typing import List
 
+from app.config import APPS_PATH
 from app.domain.entities.rwmodel import RWModel
 
 
@@ -12,3 +13,11 @@ class ProjectEntity(RWModel):
     url_paths: List[str]
     run_command: str = ''
     environment_variables: str = ''
+
+    @property
+    def uat_code_dir(self):
+        return f'{APPS_PATH}/{self.name}'
+
+    @property
+    def uat_app_name(self):
+        return self.name

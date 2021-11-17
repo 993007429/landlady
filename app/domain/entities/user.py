@@ -31,4 +31,4 @@ def get_user_by_token(token: str) -> Optional[JWTUser]:
     try:
         return JWTUser(uid=payload['uid'], name=payload['name'])
     except (jwt.PyJWTError, ValidationError):
-        pass
+        return None
