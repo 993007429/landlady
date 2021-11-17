@@ -18,6 +18,7 @@ class ProjectEntity(RWModel):
     def uat_code_dir(self):
         return f'{APPS_PATH}/{self.name}'
 
+    @property
     def uat_venv_dir(self):
         return f'{APPS_PATH}/venv/{self.name}'
 
