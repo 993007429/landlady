@@ -6,7 +6,9 @@ import requests
 import sseclient
 from prettytable import PrettyTable
 
-from cli.config import DEPLOY_ENDPOINT, JWT_TOKEN, PROJECT_ID, JWT_TOKEN_PREFIX, BACKEND_INCLUDE, FE_DIST
+from cli.libs.wechat_work.webhook import WechatWorkWebhook
+from cli.config import DEPLOY_ENDPOINT, JWT_TOKEN, PROJECT_ID, JWT_TOKEN_PREFIX, BACKEND_INCLUDE, FE_DIST, \
+    DEPLOY_WEWORK_WEBHOOK
 from cli.exceptions import ServerErrorException
 from cli.packaging import make_targz
 
@@ -128,6 +130,20 @@ class Session(object):
 
         for _, f in files.items():
             f.close()
+            os.remove(f.name)
+
+    def broadcast_uat_deploy(self, project_name: str):
+        if DEPLOY_WEWORK_WEBHOOK:
+            url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}'
+            resp = requests.get(url, headers=self.get_headers())
+            result = self.get_json_response(resp)
+            url = result['project']['uatEndpoint']
+
+            lines = os.popen("git log -1").readlines()
+            msg = '>' + '>'.join(lines)
+            webhook = WechatWorkWebhook(DEPLOY_WEWORK_WEBHOOK)
+            md = f'# [{project_name}]UAT自动部署成功\n> 最新提交：\n{msg}\n测试地址：[{url}]({url})'
+            webhook.markdown(md)
 
     def fetch_log(self, box_id: int):
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/app_log?process_num=0'

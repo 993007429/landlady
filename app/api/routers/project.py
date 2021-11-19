@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import UploadFile, File, Depends, HTTPException, APIRouter
 
 from app.api.dependencies.authentication import get_current_user_authorizer
-from app.api.schemas.uat import UATStatusResponse
+from app.api.schemas.project import UATStatusResponse, ProjectResponse
 from app.db.models import User
 from app.domain.services import errors
 from app.domain.services.factory import ServiceFactory
@@ -11,6 +11,19 @@ from app.domain.services.project import ProjectService
 from app.resources import strings
 
 router = APIRouter()
+
+
+@router.get(
+    "/projects/{project_id}",
+    response_model=ProjectResponse,
+    name="admin:get-project-info",
+)
+async def get_project(
+        project_id: int,
+        project_service: ProjectService = Depends(ServiceFactory.dependency(ProjectService))) -> UATStatusResponse:
+
+    project = project_service.get_project(project_id)
+    return ProjectResponse(project=project)
 
 
 @router.post(

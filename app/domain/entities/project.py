@@ -25,3 +25,12 @@ class ProjectEntity(RWModel):
     @property
     def uat_app_name(self):
         return self.name
+
+    @property
+    def uat_endpoint(self):
+        return f'www-uat.{self.domain}'
+
+    def dict(self, *args, **kwargs):
+        d = super().dict(*args, **kwargs)
+        d['uatEndpoint'] = self.uat_endpoint
+        return d

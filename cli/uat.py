@@ -1,4 +1,5 @@
 import click
+
 from cli.exceptions import InvalidCommandException, ServerErrorException
 from cli.session import Session
 
@@ -12,6 +13,8 @@ class UATCLI(object):
     def __call__(self):
         if self.command == 'deploy':
             self.session.deploy_uat()
+        elif self.command == 'broadcast_deploy':
+            self.session.broadcast_uat_deploy(project_name=self.arg1)
         else:
             raise InvalidCommandException()
 

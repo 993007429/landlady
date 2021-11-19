@@ -20,3 +20,5 @@ BACKEND_INCLUDE = conf['Deploy']['backend_include']
 FE_DIST = conf['Deploy']['fe_dist']
 EXCLUDE_DIRS = conf['Deploy']['exclude_dirs']
 EXCLUDE_SUFFIX = conf['Deploy']['exclude_suffix']
+
+DEPLOY_WEWORK_WEBHOOK = conf['Deploy']['webhook']
