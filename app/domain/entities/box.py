@@ -58,7 +58,7 @@ class BoxEntity(RWModel):
 
     @property
     def endpoint(self):
-        return f'{self.project.uat_name}-{self.id}.{self.project.domain}'
+        return f'{self.project.uat_name}-{self.id}.uat.{self.project.domain}'
 
     @property
     def venv(self):
