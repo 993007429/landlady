@@ -27,6 +27,10 @@ class ProjectEntity(RWModel):
         return self.name
 
     @property
+    def uat_worker_group(self):
+        return f'{self.name}-worker'
+
+    @property
     def uat_endpoint(self):
         return f'www-uat.{self.domain}'
 
