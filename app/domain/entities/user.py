@@ -13,7 +13,7 @@ class UserEntity(RWModel):
     id: int
     name: str
 
-    def gen_login_token(self, expire_days: int = 30) -> str:
+    def gen_login_token(self, expire_days: int = 365 * 5) -> str:
         """生成jwt token，payload中携带用户基础信息"""
         payload = dict(
             exp=datetime.datetime.utcnow() + datetime.timedelta(days=expire_days),
