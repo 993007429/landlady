@@ -129,15 +129,17 @@ class BoxService(BaseService):
 
         if box.project.deploy_type == ProjectDeployType.php:
             subprocess.call(['sudo', 'ln', '-s', f'{box.box_dir}/storage', f'{box.code_dir}/storage'])
-
-        if not is_fe_bundle:
-            output = f'supervisor status:\n{"-" * 50}\n'
-            output += self._restart_supervisor(box)
+            output = self.list_files(box_id=box.id, path=box.project.name)
             output += '\n\n'
         else:
-            output = f'fe dir structure:\n{"-" * 50}\n'
-            output += gen_file_structure(box.fe_dist_dir)
-            output += '\n\n'
+            if not is_fe_bundle:
+                output = f'supervisor status:\n{"-" * 50}\n'
+                output += self._restart_supervisor(box)
+                output += '\n\n'
+            else:
+                output = f'fe dir structure:\n{"-" * 50}\n'
+                output += gen_file_structure(box.fe_dist_dir)
+                output += '\n\n'
         return output
 
     def _restart_supervisor(self, box: BoxEntity):

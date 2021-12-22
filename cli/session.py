@@ -92,8 +92,6 @@ class Session(object):
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/upload'
         files = {bname: open(fname, 'rb') for bname, fname in bundles.items()}
 
-        print(url)
-        print(files)
         r = requests.post(url, files=files, headers=self.get_headers())
         result = self.get_json_response(r)
         upadted_box = result.get('box')
