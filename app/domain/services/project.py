@@ -10,7 +10,7 @@ from app.db.models import Box
 from app.db.models.admin import Admin
 from app.db.models.project import Project
 from app.domain.entities.box import BoxEntity
-from app.domain.entities.project import ProjectEntity
+from app.domain.entities.project import ProjectEntity, ProjectDeployType
 from app.domain.services import errors
 from app.domain.services.base import BaseService
 from app.domain.utils.nginx import gen_nginx_conf
@@ -20,10 +20,10 @@ from app.infra.repository import RepoQuery, PageParams
 
 class ProjectService(BaseService):
 
-    def new_project(self, name: str, domain: str, uat_name: str, port_prefix: int,
+    def new_project(self, name: str, domain: str, deploy_type: ProjectDeployType, uat_name: str, port_prefix: int,
                     url_paths: str, run_command: str, environment_variables: str) -> Optional[ProjectEntity]:
         project = Project(
-            name=name, domain=domain, uat_name=uat_name, port_prefix=port_prefix,
+            name=name, domain=domain, deploy_type=deploy_type, uat_name=uat_name, port_prefix=port_prefix,
             url_paths=url_paths, run_command=run_command, environment_variables=environment_variables)
         self._repo_generator(Project).save(project)
         if project.id:

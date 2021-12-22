@@ -12,6 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.db.models.box import Box, BoxStatus
 from app.domain.entities.box import BoxEntity
+from app.domain.entities.project import ProjectDeployType
 from app.domain.services import errors
 from app.domain.services.base import BaseService
 from app.domain.services.errors import NewEntityFailException
@@ -125,6 +126,9 @@ class BoxService(BaseService):
             else:
                 shutil.rmtree(box.code_dir, ignore_errors=True)
                 tar.extractall(box.code_dir)
+
+        if box.project.deploy_type == ProjectDeployType.php:
+            subprocess.call(['sudo', 'ln', '-s', f'{box.box_dir}/storage', f'{box.code_dir}/storage'])
 
         if not is_fe_bundle:
             output = f'supervisor status:\n{"-" * 50}\n'

@@ -1,13 +1,20 @@
+import enum
 from typing import List
 
 from app.config import APPS_PATH
 from app.domain.entities.rwmodel import RWModel
 
 
+class ProjectDeployType(enum.Enum):
+    python = 'python'
+    php = 'php'
+
+
 class ProjectEntity(RWModel):
     id: int
     name: str
     domain: str
+    deploy_type: ProjectDeployType
     uat_name: str
     port_prefix: int
     url_paths: List[str]

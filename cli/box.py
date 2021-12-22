@@ -1,9 +1,14 @@
+import sys
+import os
 import enum
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import click
 
 from cli.exceptions import ServerErrorException, InvalidCommandException
 from cli.session import Session
+
 
 
 class CLI(object):
