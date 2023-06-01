@@ -133,11 +133,11 @@ class BoxService(BaseService):
             output += '\n\n'
         else:
             if not is_fe_bundle:
-                output = f'supervisor status:\n{"-" * 50}\n'
+                output = f'supervisor status:\n{"-" * 79}\n'
                 output += self._restart_supervisor(box)
                 output += '\n\n'
             else:
-                output = f'fe dir structure:\n{"-" * 50}\n'
+                output = f'fe dir structure:\n{"-" * 79}\n'
                 output += gen_file_structure(box.fe_dist_dir)
                 output += '\n\n'
         return output

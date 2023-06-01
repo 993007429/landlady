@@ -92,13 +92,17 @@ class Session(object):
         url = f'{DEPLOY_ENDPOINT}/projects/{PROJECT_ID}/boxes/{box_id}/upload'
         files = {bname: open(fname, 'rb') for bname, fname in bundles.items()}
 
+        print('-' * 70)
         r = requests.post(url, files=files, headers=self.get_headers())
         result = self.get_json_response(r)
-        upadted_box = result.get('box')
+        updated_box = result.get('box')
+        if updated_box:
+            print('\n\n')
+            print('部署成功！')
 
         print('\n\n')
         print(f'box status:')
-        self.display_boxes([upadted_box] if upadted_box else [])
+        self.display_boxes([updated_box] if updated_box else [])
         print('\n')
         print(result['status'])
 

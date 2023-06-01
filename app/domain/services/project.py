@@ -102,7 +102,7 @@ class ProjectService(BaseService):
         except subprocess.CalledProcessError as e:
             pass
 
-        output += f'supervisor status:\n{"-" * 50}\n'
+        output += f'supervisor status:\n{"-" * 79}\n'
         supervisor_group = f'{project.uat_app_name}:'
         supervisor_worker_group = f'{project.uat_worker_group}:'
         subprocess.call(['sudo', 'supervisorctl', 'restart', supervisor_group])
