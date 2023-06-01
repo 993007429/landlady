@@ -17,17 +17,11 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
 安装CLI
 ---------------
 
-推荐使用pip安装（需指定idiaoyan的pip源
+目前公司没有pypi私有镜像仓库，那么目前只能源码安装
 
 ::
 
-   $ python -m pip install box --index-url=http://mirrors.idiaoyan.cn/repository/pypi/simple/ --trusted-host=mirrors.idiaoyan.cn
-
-或者你使用源码安装
-
-::
-
-    git checkout git@code.idiaoyan.cn:yu.zhao/landlady.git
+    git checkout https://gitlab.dipath.cn/dev/landlady.git
 
     cd landlady & python setup.py install
 
@@ -40,12 +34,12 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
 ::
 
     [Credentials]
-    endpoint=http://deploy.uat.spsspro.com/api
+    endpoint=http://deploy.uat.dipath.cn/api
     token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2MzgwMjA3NDUsInVpZCI6MSwibmFt
     project_id=1
 
     [Deploy]
-    backend_include=seal,local_settings,app.py
+    backend_include=cyborg,local_settings,app.py
     fe_dist=dist
     exclude_dirs=.git,local_settings/.git,__pycache__,tests
     exclude_suffix=.pyc,__pycache__
@@ -78,11 +72,11 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
     +--------+------------------------+--------+----------+-----------------------------+--------+
     | box_id |        endpoint        | owner  | fe_owner |          start_time         | status |
     +--------+------------------------+--------+----------+-----------------------------+--------+
-    |   1    | test-1.uat.spsspro.com | zhaoyu |          | 2021-11-01T11:28:16.832250Z |   on   |
-    |   2    | test-2.uat.spsspro.com | lihuan |          | 2021-10-28T13:21:21.263905Z | error  |
-    |   3    | test-3.uat.spsspro.com |        |          |                             |  off   |
-    |   4    | test-4.uat.spsspro.com |        |          |                             |  off   |
-    |   5    | test-5.uat.spsspro.com |        |          |                             |  off   |
+    |   1    | test-1.uat.dipath.cn | zhaoyu |          | 2021-11-01T11:28:16.832250Z |   on   |
+    |   2    | test-2.uat.dipath.cn | lihuan |          | 2021-10-28T13:21:21.263905Z | error  |
+    |   3    | test-3.uat.dipath.cn |        |          |                             |  off   |
+    |   4    | test-4.uat.dipath.cn |        |          |                             |  off   |
+    |   5    | test-5.uat.dipath.cn |        |          |                             |  off   |
     +--------+------------------------+--------+----------+-----------------------------+--------+
 
 - box_id: box的id
@@ -103,16 +97,16 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
     box 1 deploy [--force=True]
     ...
     local_settings/README.md
-    local_settings/seal_dev.ini
+    local_settings/cyborg_dev.ini
     local_settings/sp-webform
     app.py
     +--------+------------------------+--------+----------+-----------------------------+--------+
     | box_id |        endpoint        | owner  | fe_owner |          start_time         | status |
     +--------+------------------------+--------+----------+-----------------------------+--------+
-    |   1    | test-1.uat.spsspro.com | zhaoyu |          | 2021-11-01T11:28:16.832250Z |   on   |
+    |   1    | test-1.uat.dipath.cn | zhaoyu |          | 2021-11-01T11:28:16.832250Z |   on   |
     +--------+------------------------+--------+----------+-----------------------------+--------+
 
-    seal-1:seal-1-9050               RUNNING   pid 12637, uptime 0:00:01
+    cyborg-1:cyborg-1-9050               RUNNING   pid 12637, uptime 0:00:01
 
 如果当前环境已被占用，操作会失败，但是如果你使用--force=True, 可以强制部署。
 强制部署仅针对无法联系上占用者，但又着急部署的情况，不要把强制部署当成一种常态。
@@ -166,7 +160,7 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
     drwxrwxr-x 3 ops ops 4096 Oct 28 21:48 .
     drwxrwxr-x 7 ops ops 4096 Oct 27 18:12 ..
     -rw-rw-r-- 1 ops ops  614 Oct 27 23:16 nginx.conf
-    drwxrwxr-x 4 ops ops 4096 Oct 28 21:48 seal
+    drwxrwxr-x 4 ops ops 4096 Oct 28 21:48 cyborg
     -rw-rw-r-- 1 ops ops  379 Oct 27 18:12 supervisor.conf
 
 
@@ -175,7 +169,7 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
 
 ::
 
-    box 1 cat seal/seal/__init__.py
+    box 1 cat cyborg/cyborg/__init__.py
 
     # encoding: utf-8
 
@@ -193,7 +187,7 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
     +--------+------------------------+-------+----------+-----------------------------+--------+
     | box_id |        endpoint        | owner | fe_owner |          start_time         | status |
     +--------+------------------------+-------+----------+-----------------------------+--------+
-    |   1    | test-1.uat.spsspro.com |       |          | 2021-11-01T11:28:16.832250Z |   on   |
+    |   1    | test-1.uat.dipath.cn |       |          | 2021-11-01T11:28:16.832250Z |   on   |
     +--------+------------------------+-------+----------+-----------------------------+--------+
 
 
@@ -205,7 +199,7 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
 
 ::
 
-    git clone git@code.idiaoyan.cn:yu.zhao/landlady.git & cd landlady
+    git clone https://gitlab.dipath.cn/dev/landlady.git & cd landlady
 
 编辑配置文件
 
@@ -215,10 +209,10 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
     cat .env
     DEBUG=True
     LOGIN_TOKEN_SECRET=123456
-    DB_CONNECTION=sqlite:////data/sqlite/landlady.db
+    DB_CONNECTION=sqlite:////data/landlady/landlady.db
     BOX_ROOT=/data/landlady/uat-envs
-    OPS_USER=ops
-    LOGS_PATH=/data0/logs
+    OPS_USER=dipath
+    LOGS_PATH=/data/logs
 
 
 然后，你需要一个python 3.8+的环境，通常是virtualenv之类的
@@ -242,13 +236,13 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
 ::
 
     python tools/init_project.py
-    Please give a project name, e.g. seal: seal                                     # 项目名称（初始化之后不可更新）
-    Please give a domain, e.g. spsspro.com [spsspro.com]: uat.spsspro.com           # 基础域名
+    Please give a project name, e.g. cyborg: cyborg                                 # 项目名称（初始化之后不可更新）
+    Please give a domain, e.g. xxxxxx.com [xxxxxx.com]: uat.xxxxxxx.com             # 基础域名
     Please give a uat name, e.g. test, uat [test]: test                             # uat名称，会和box_id, 基础域名组成最终的服务地址
     Please give a port prefix, e.g. 90 [90]: 90                                     # 端口前缀, 比如前缀是90的话，这个项目下面的第一个box所启动的两个python进程可能是9010，9011，以此类推
-    Please give the valid paths as nginx location [api]: api,v1,algorithm           # nginx配置中暴露的用作后端服务的path
+    Please give the valid paths as nginx location [api]: api,v1,aipath              # nginx配置中暴露的用作后端服务的path
     Please give a command to run a server [python app.py]: python app.py            # 启动python进程的命令，如果你用 uvicorn的话，这个命令可能是  uvicorn app.main:app
-    Please give environment variables. e.g. SEAL_TEST='True' []: SEAL_TEST='True'   # 你可以设定若干个环境变量，比如在应用中你可能会根据某个环境变量来读取不同的配置文件，你需要把这个环境变量设定在这里
+    Please give environment variables. e.g. CYBORG_ENV='test' []: CYBORG_ENV='test' # 你可以设定若干个环境变量，比如在应用中你可能会根据某个环境变量来读取不同的配置文件，你需要把这个环境变量设定在这里
     How many boxes do you want? [2]: 2                                              # 单个box你要启动的python进程数
 
 这些配置，除了项目名称之外，都可以在本地sqlite中修改，当然，推荐使用python接口来修改，可以帮你自动对之前已经生成好的box进行更新，包括它的supervisor和nginx的配置文件等等
@@ -267,5 +261,22 @@ landlady是一个轻量化的UAT环境管理系统，在有跳板机的服务器
 其他事项
 ---------------
 
-需要联系运维作下域名映射，比如 *.uat.spsspro.com指向你的uat服务器
-这样，你就可以把 deploy.uat.spsspro.com 指向 landlady服务， 而 {uat_name}-{box_id}.uat.spsspro.com 指向某个box提供的服务了
+为了让nginx根据不同的url路由到不同的box，需要在本地hosts文件建立域名和服务器的映射
+
+
+::
+    >: vim /etc/hosts
+
+    ##
+    # Host Database
+    #
+    # localhost is used to configure the loopback interface
+    # when the system is booting.  Do not change this entry.
+
+    172.16.1.217    test-1.uat.dipath.cn
+    172.16.1.217    test-2.uat.dipath.cn
+    172.16.1.217    test-3.uat.dipath.cn
+    172.16.1.217    test-4.uat.dipath.cn
+
+
+这样，你就可以把 deploy.uat.dipath.cn 指向 landlady服务， 而 {uat_name}-{box_id}.uat.dipath.cn 指向某个box提供的服务了
