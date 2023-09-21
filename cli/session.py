@@ -6,7 +6,6 @@ import requests
 import sseclient
 from prettytable import PrettyTable
 
-from cli.libs.wechat_work.webhook import WechatWorkWebhook
 from cli.config import DEPLOY_ENDPOINT, JWT_TOKEN, PROJECT_ID, JWT_TOKEN_PREFIX, BACKEND_INCLUDE, FE_DIST, \
     DEPLOY_WEWORK_WEBHOOK
 from cli.exceptions import ServerErrorException
@@ -145,6 +144,7 @@ class Session(object):
 
             lines = os.popen("git log -1").readlines()
             msg = '>' + '>'.join(lines)
+            from cli.libs.wechat_work.webhook import WechatWorkWebhook
             webhook = WechatWorkWebhook(DEPLOY_WEWORK_WEBHOOK)
             md = f'# [{project_name}]UAT自动部署成功\n> 最新提交：\n{msg}\n测试地址：[{url}]({url})'
             webhook.markdown(md)
